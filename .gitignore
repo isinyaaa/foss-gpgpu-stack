@@ -1,6 +1,8 @@
 *.DS_Store
 
-repos/
+/repos/
+
+ldavis_prepared*
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
