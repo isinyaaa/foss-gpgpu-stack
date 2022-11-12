@@ -47,11 +47,12 @@ class LDA:
     """
     Generate a LDA model from the given data
     """
-    def __init__(self, input_file, alpha=0.5, eta=0.5, topics=10):
+    def __init__(self, input_file, alpha, eta, topics, workers):
         self.input_file = input_file
         self.alpha = alpha
         self.eta = eta
         self.topics = topics
+        self.workers = workers
 
     def prepare(self, data):
         from gensim import corpora
@@ -109,7 +110,7 @@ class LDA:
         return data, corpus, id2word
 
     def train(self, corpus, id2word,
-              alpha=None, eta=None, topics=None):
+              alpha=None, eta=None, topics=None, workers=None):
         from gensim.models import LdaMulticore
 
         if alpha is None:
@@ -118,11 +119,14 @@ class LDA:
             eta = self.eta
         if topics is None:
             topics = self.topics
+        if workers is None:
+            workers = self.workers
 
         lda_model = LdaMulticore(corpus=corpus, id2word=id2word,
                                  num_topics=topics, random_state=100,
                                  chunksize=100, passes=10, alpha=alpha,
-                                 eta=eta, per_word_topics=True, workers=15)
+                                 eta=eta, per_word_topics=True,
+                                 workers=workers)
 
         if LOGGER.getEffectiveLevel() == logging.DEBUG:
             from pprint import pprint
@@ -130,7 +134,10 @@ class LDA:
 
         return lda_model
 
-    def test_model_hyperparams(self, data, corpus, id2word):
+    def test_model_hyperparams(self, data, corpus, id2word,
+                               min_alpha=0.1, max_alpha=1, alpha_step=0.3,
+                               min_eta=0.1, max_eta=1, eta_step=0.3,
+                               min_topics=2, max_topics=11, topics_step=1):
         from gensim.utils import ClippedCorpus
         import numpy as np
         import tqdm
@@ -139,13 +146,13 @@ class LDA:
         corpus_sets = [ClippedCorpus(corpus, int(len(corpus) * 0.75)), corpus]
         corpus_title = ['75% Corpus', '100% Corpus']
 
-        topics_range = range(2, 11)
+        topics_range = range(min_topics, max_topics, topics_step)
 
-        alpha = list(np.arange(0.1, 1.0, 0.3))
+        alpha = list(np.arange(min_alpha, max_alpha, alpha_step))
         alpha.append('symmetric')
         alpha.append('asymmetric')
 
-        eta = list(np.arange(0.1, 1.0, 0.3))
+        eta = list(np.arange(min_eta, max_eta, eta_step))
         eta.append('symmetric')
 
         model_results = {
@@ -225,11 +232,14 @@ def main(args):
         words = cloud.prepare(readme_data)
         cloud.gencloud(words)
 
-    lda = LDA(args.input_file, 0.8, 0.8, 10)
+    lda = LDA(args.input_file, args.alpha, args.eta, args.topics, args.workers)
     data, corpus, id2word = lda.prepare(readme_data)
 
     if args.hyperparams:
-        lda.test_model_hyperparams(data, corpus, id2word)
+        lda.test_model_hyperparams(data, corpus, id2word,
+                                   args.min_alpha, args.max_alpha, args.alpha_step,
+                                   args.min_eta, args.max_eta, args.eta_step,
+                                   args.min_topics, args.max_topics, args.topics_step)
     else:
         lda_model = lda.train(corpus, id2word)
         lda.visualize(corpus, id2word, lda_model)
@@ -237,19 +247,53 @@ def main(args):
 
 if __name__ == '__main__':
     from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    from multiprocessing import cpu_count
 
     parser = ArgumentParser(prog='lda.py',
                             description='Latent Dirichlet Analysis for Repositories',
                             formatter_class=ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('-v', '--verbose', action='store_true', default=False,
-                        help='increase output verbosity')
-    parser.add_argument('-d', '--debug', action='store_true', default=False,
-                        help='enable debug logging')
-    parser.add_argument('-hy', '--hyperparams', action='store_true', default=False,
-                        help='test hyperparams')
-    parser.add_argument('-c', '--cloud', action='store_true', default=False,
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-v', '--verbose', action='store_true',
+                       help='increase output verbosity')
+    group.add_argument('-d', '--debug', action='store_true',
+                       help='enable debug logging')
+    parser.add_argument('-w', '--workers', type=int, default=cpu_count(),
+                        help='number of workers to use')
+    parser.add_argument('-c', '--cloud', action='store_true',
                         help='generate word cloud')
+
+    subparsers = parser.add_subparsers(help='sub-command help')
+
+    parser_lda = subparsers.add_parser('lda', help='run LDA')
+    parser_lda.add_argument('-t', '--topics', type=int, default=10,
+                            help='number of topics to use')
+    parser_lda.add_argument('-a', '--alpha', type=float, default=0.8,
+                            help='alpha to use')
+    parser_lda.add_argument('-e', '--eta', type=float, default=0.8,
+                            help='eta to use')
+
+    parser_hy = subparsers.add_parser('hy', help='run hyperparameter tuning')
+    parser_hy.add_argument('-mt', '--min-topics', type=int, default=2,
+                           help='minimum number of topics to test')
+    parser_hy.add_argument('-xt', '--max-topics', type=int, default=11,
+                           help='maximum number of topics to test')
+    parser_hy.add_argument('-ts', '--topics-step', type=int, default=1,
+                           help='step size for topic testing')
+    parser_hy.add_argument('-ma', '--min-alpha', type=float, default=0.1,
+                           help='minimum alpha to test')
+    parser_hy.add_argument('-xa', '--max-alpha', type=float, default=1,
+                           help='maximum alpha to test')
+    parser_hy.add_argument('-as', '--alpha-step', type=float, default=0.3,
+                           help='step size for alpha testing')
+    parser_hy.add_argument('-me', '--min-eta', type=float, default=0.1,
+                           help='minimum eta to test')
+    parser_hy.add_argument('-xe', '--max-eta', type=float, default=1,
+                           help='maximum eta to test')
+    parser_hy.add_argument('-es', '--eta-step', type=float, default=0.3,
+                           help='step size for eta testing')
+    parser_hy.set_defaults(hyperparams=True,
+                           alpha=None, eta=None, topics=None) # HACK
 
     parser.add_argument('input_file', help='input file')
 
