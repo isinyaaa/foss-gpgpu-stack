@@ -39,6 +39,10 @@ class LDA:
     """
     Generate a LDA model from the given data
     """
+    def __init__(self, alpha=0.5, eta=0.5, topics=10):
+        self.alpha = alpha
+        self.eta = eta
+        self.topics = topics
 
     def prepare(self, data):
         from gensim import corpora
@@ -95,14 +99,82 @@ class LDA:
 
         return corpus, id2word
 
-    def train(self, corpus, id2word):
-        from gensim.models.ldamodel import LdaModel
+    def train(self, corpus, id2word,
+              alpha=None, eta=None, topics=None):
+        from gensim.models import LdaMulticore
+        from pprint import pprint
 
-        lda_model = LdaModel(corpus=corpus, num_topics=10, id2word=id2word,
-                             alpha='auto', eta='auto', iterations=100,
-                             passes=10, per_word_topics=True)
+        if alpha is None:
+            alpha = self.alpha
+        if eta is None:
+            eta = self.eta
+        if topics is None:
+            topics = self.topics
+
+        lda_model = LdaMulticore(corpus=corpus, id2word=id2word,
+                             num_topics=topics, random_state=100,
+                             chunksize=100, passes=10, alpha=alpha, eta=eta,
+                             per_word_topics=True, workers=15)
+
+        pprint(lda_model.print_topics())
 
         return lda_model
+
+    def test_model_hyperparams(self, data, corpus, id2word):
+        from gensim.utils import ClippedCorpus
+        import numpy as np
+        import tqdm
+
+        corpus_sets = [ClippedCorpus(corpus, int(len(corpus) * 0.75)), corpus]
+        corpus_title = ['75% Corpus', '100% Corpus']
+
+        topics_range = range(2, 11)
+
+        alpha = list(np.arange(0.1, 1.0, 0.3))
+        alpha.append('symmetric')
+        alpha.append('asymmetric')
+
+        eta = list(np.arange(0.1, 1.0, 0.3))
+        eta.append('symmetric')
+
+        model_results = {
+            'Validation_Set': [],
+            'Topics': [],
+            'Alpha': [],
+            'Eta': [],
+            'Coherence': []
+        }
+
+        def model_perplexity(data, id2word, lda_model):
+            """
+            Get model perplexity for analysis
+            """
+            from gensim.models import CoherenceModel
+
+            return CoherenceModel(model=lda_model, texts=data, dictionary=id2word,
+                                  coherence='c_v').get_coherence()
+
+        iterations = len(eta) * len(alpha) * len(topics_range) * len(corpus_title)
+        pbar = tqdm.tqdm(total=iterations, desc="Running LDA")
+
+        for i in range(len(corpus_sets)):
+            for k in topics_range:
+                for a in alpha:
+                    for b in eta:
+                        lda_model = self.train(corpus_sets[i], id2word,
+                                               a, b, k)
+                        cv = model_perplexity(data, id2word, lda_model)
+
+                        model_results['Validation_Set'].append(corpus_title[i])
+                        model_results['Topics'].append(k)
+                        model_results['Alpha'].append(a)
+                        model_results['Eta'].append(b)
+                        model_results['Coherence'].append(cv)
+
+                        pbar.update(1)
+
+        pd.DataFrame(model_results).to_csv('./scores/lda_tuning_results.csv', index=False)
+        pbar.close()
 
     def visualize(self, corpus, id2word, lda_model):
         import pyLDAvis
@@ -111,7 +183,7 @@ class LDA:
         import os
 
         # pyLDAvis.enable_notebook()
-        LDAvis_filepath = os.path.join('./ldavis_prepared_' + str(10))
+        LDAvis_filepath = os.path.join('./ldavis_prepared_' + str(self.topics))
 
         if True:
             LDAvis_prepared = gensimvis.prepare(lda_model, corpus, id2word)
@@ -128,17 +200,18 @@ class LDA:
 
 def main():
     readme_data = pd.read_csv('repos/repo_readmes.csv')
-    print(readme_data.head())
+    # print(readme_data.head())
     readme_data = readme_data.drop(columns=['filename'], axis=1)
-    print(readme_data.head())
+    # print(readme_data.head())
 
-    cloud = Cloud()
-    words = cloud.prepare(readme_data)
-    cloud.gencloud(words)
+    # cloud = Cloud()
+    # words = cloud.prepare(readme_data)
+    # cloud.gencloud(words)
 
-    lda = LDA()
+    lda = LDA(0.8, 0.8, 10)
     data, corpus, id2word = lda.prepare(readme_data)
 
+    # lda.test_model_hyperparams(data, corpus, id2word)
     lda_model = lda.train(corpus, id2word)
     lda.visualize(corpus, id2word, lda_model)
 
