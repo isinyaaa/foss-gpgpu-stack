@@ -1,0 +1,9 @@
+numpy
+pyldavis
+gensim
+scikit-learn
+matplotlib
+tqdm
+nltk
+wordcloud
+tk
