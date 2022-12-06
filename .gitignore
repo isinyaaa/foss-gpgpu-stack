@@ -1,9 +1,9 @@
 *.DS_Store
 
+/ldavis_data/
+/repo_data/
 /repos/
 /scores/
-
-ldavis_prepared*
 
 ## Core latex/pdflatex auxiliary files:
 *.aux

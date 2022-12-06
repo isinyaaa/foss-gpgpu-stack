@@ -11,7 +11,7 @@ class LDA:
         import pickle
 
         # pyLDAvis.enable_notebook()
-        LDAvis_filepath = os.path.join(f'./ldavis_prepared_{str_append}_{str(self.topics)}')
+        LDAvis_filepath = os.path.join(f'./ldavis_data/{str_append}_prepared_{str(self.topics)}')
 
         LDAvis_prepared = prepare(*args, **kwargs)
         with open(LDAvis_filepath, 'wb') as f:
