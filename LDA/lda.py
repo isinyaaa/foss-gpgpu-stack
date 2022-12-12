@@ -70,6 +70,8 @@ class GensimLDA(LDA):
         _, corpus, id2word = self.prepare(vectorizer, data)
         model = self.train(corpus, id2word)
         self.save_result_as_html(model, corpus, id2word)
+        self.print_document_topics(model, corpus)
+        self.print_topics(model)
 
     def prepare(self, vectorizer, data):
         from gensim.matutils import Sparse2Corpus
@@ -112,6 +114,24 @@ class GensimLDA(LDA):
 
         super().save_result_as_html('gensim', prepare, model, corpus, id2word,
                                     mds='tsne')
+
+    def print_topics(self, model):
+        for idx, topic in model.print_topics(-1):
+            print('Topic: {} \nWords: {}'.format(idx, topic))
+
+    def print_document_topics(self, model, corpus):
+        import matplotlib.pyplot as plt
+
+        topics = [model.get_document_topics(doc) for doc in corpus]
+
+        topic_freq = [max(t, key=lambda x: x[1])[0] for t in topics]
+
+        plt.hist(topic_freq,
+                 bins=self.topics, density=True, rwidth=0.8)
+        plt.ylabel('% of documents')
+        plt.xlabel('Topic')
+        plt.legend()
+        plt.savefig(f'./ldavis_data/{self.topics}_topics.png', dpi=300)
 
     def test_model_hyperparams(self, vectorizer, data,
                                min_alpha=0.1, max_alpha=1, alpha_step=0.3,
