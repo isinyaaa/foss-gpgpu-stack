@@ -2,14 +2,16 @@ import logging
 
 class Preprocess:
     def run(self, data):
-        data.contents = data.contents.apply(self.clean)
+        data.readmes_contents = data.readmes_contents.apply(self.clean)
+        logging.info('Cleaning done')
+        logging.debug(data.head())
         return self.vectorize(data)
 
     def clean(self, text):
         import re
 
+        text = re.sub(r'[%s]' % re.escape("""'"()[]{}"""), ' ', text)
         text = re.sub(r'<.*?>+', '', text)
-        text = re.sub(r'[%s]' % re.escape("""<>'"()[]{}"""), ' ', text)
         text = re.sub(r'\d*', '', text)
         text = re.sub(r'\n', '', text)
         text = re.sub(r'(?:(?:https?:\/\/)|(?:www\.))([^\/ ]+)(?:(?:\.[a-zA-Z]*)|(?::\d{3,5}))(\/+\S*)?', r'\1 \2', text)
@@ -32,7 +34,10 @@ class Preprocess:
         from sklearn.feature_extraction.text import CountVectorizer
 
         stop_words = stopwords.words('english')
-        stop_words.append('www')
+        stop_words.extend(['www', 'github', 'file', 'install', 'doc',
+                           'documentation', 'option', 'also', 'following',
+                           'release', 'project', 'package', 'example',
+                           'build', 'run', 'build'])
 
         class LemmaTokenizer:
             def __init__(self):
@@ -44,8 +49,8 @@ class Preprocess:
                                 if t not in stop_words ]
 
         vectorizer = CountVectorizer(tokenizer=LemmaTokenizer(),
-                                     ngram_range=(1, 3), min_df=3, max_df=0.8,
+                                     ngram_range=(1, 3), min_df=0.1, max_df=0.8,
                                      lowercase=True, strip_accents='ascii',
                                      analyzer='word', max_features=1000)
 
-        return vectorizer, vectorizer.fit_transform(data.contents.values)
+        return vectorizer, vectorizer.fit_transform(data.readmes_contents.values)
