@@ -139,27 +139,37 @@ class GensimLDA(LDA):
         plt.savefig(f'./ldavis_data/{self.topics}_topics.png', dpi=300)
 
     def test_model_hyperparams(self, vectorizer, data,
-                               min_alpha=0.1, max_alpha=1, alpha_step=0.3,
-                               min_eta=0.1, max_eta=1, eta_step=0.3,
-                               min_topics=2, max_topics=11, topics_step=1):
-        from gensim.utils import ClippedCorpus
-        import numpy as np
-        import tqdm
+                               min_alpha=0.1,   max_alpha=1,    alpha_step=0.3,
+                               min_eta=0.1,     max_eta=1,      eta_step=0.3,
+                               min_topics=2,    max_topics=11,  topics_step=1):
         from datetime import datetime
 
-        data, corpus, id2word = self.prepare(vectorizer, data)
+        import numpy as np
+        import tqdm
 
-        corpus_sets = [ClippedCorpus(corpus, int(len(corpus) * 0.75)), corpus]
-        corpus_title = ['75% Corpus', '100% Corpus']
+        from gensim.utils import ClippedCorpus
+
+        texts, full_corpus, id2word = self.prepare(vectorizer, data)
+
+        corpus_sets = [
+                {
+                    'name': '75% Corpus',
+                    'data': ClippedCorpus(full_corpus, int(len(full_corpus) * 0.75))
+                },
+                {
+                    'name': '100% Corpus',
+                    'data': full_corpus
+                }
+            ]
 
         topics_range = range(min_topics, max_topics, topics_step)
 
-        alpha = list(np.arange(min_alpha, max_alpha, alpha_step))
-        alpha.append('symmetric')
-        alpha.append('asymmetric')
+        alpha_range = list(np.arange(min_alpha, max_alpha, alpha_step))
+        alpha_range.append('symmetric')
+        alpha_range.append('asymmetric')
 
-        eta = list(np.arange(min_eta, max_eta, eta_step))
-        eta.append('symmetric')
+        eta_range = list(np.arange(min_eta, max_eta, eta_step))
+        eta_range.append('symmetric')
 
         model_results = {
             'Validation_Set': [],
@@ -169,7 +179,7 @@ class GensimLDA(LDA):
             'Coherence': []
         }
 
-        def model_perplexity(model, texts, id2word):
+        def model_perplexity(model, corpus):
             """
             Get model perplexity for analysis
             """
@@ -178,19 +188,20 @@ class GensimLDA(LDA):
             return CoherenceModel(model=model, texts=texts, dictionary=id2word,
                                   coherence='c_v').get_coherence()
 
-        iterations = len(eta) * len(alpha) * len(topics_range) * len(corpus_title)
+        iterations = len(eta_range) * len(alpha_range) * len(topics_range) * len(corpus_sets)
         pbar = tqdm.tqdm(total=iterations, desc="Running LDA")
 
-        for i in range(len(corpus_sets)):
+        for cset in corpus_sets:
+            title, corpus = cset['name'], cset['data']
             for k in topics_range:
-                for a in alpha:
-                    for b in eta:
+                for a in alpha_range:
+                    for b in eta_range:
                         logging.info("Running LDA with k=%d, a=%s, b=%s" % (k, a, b))
 
-                        model = self.train(corpus_sets[i], id2word, a, b, k)
-                        cv = model_perplexity(model, data, id2word)
+                        model = self.train(corpus, id2word, a, b, k)
+                        cv = model_perplexity(model, texts)
 
-                        model_results['Validation_Set'].append(corpus_title[i])
+                        model_results['Validation_Set'].append(title)
                         model_results['Topics'].append(k)
                         model_results['Alpha'].append(a)
                         model_results['Eta'].append(b)
