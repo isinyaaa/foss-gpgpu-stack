@@ -6,6 +6,10 @@ import os
 LOGGER = logging.getLogger()
 
 class LDA:
+    def __init__(self, topics, workers, **kwargs):
+        self.topics = topics
+        self.workers = workers
+
     def save_result_as_html(self, str_append, prepare, *args, **kwargs):
         import pyLDAvis
         import pickle
@@ -24,9 +28,8 @@ class LDA:
 
 
 class SKLearnLDA(LDA):
-    def __init__(self, topics, workers):
-        self.topics = topics
-        self.workers = workers
+    def __init__(self, topics, workers, **kwargs):
+        super().__init__(topics, workers, **kwargs)
 
     def run(self, vectorizer, data):
         model, results = self.train(data)
@@ -58,13 +61,15 @@ class GensimLDA(LDA):
     """
     Generate a LDA model from the given data
     """
-    def __init__(self, input_file, data, alpha, eta, topics, workers):
-        self.input_file = input_file
-        self.data = data
-        self.alpha = alpha
-        self.eta = eta
-        self.topics = topics
-        self.workers = workers
+    def __init__(self, topics, workers, **kwargs):
+        super().__init__(topics, workers, **kwargs)
+
+        if kwargs.get('input_file') is not None:
+            self.input_file = kwargs.get('input_file')
+            return
+
+        self.alpha = kwargs.get('alpha')
+        self.eta = kwargs.get('eta')
 
     def run(self, vectorizer, data):
         _, corpus, id2word = self.prepare(vectorizer, data)

@@ -20,20 +20,17 @@ def main(args):
         Cloud().run(vectorizer, processed_data)
 
     if args.hyperparams:
-        lda = GensimLDA(args.input_file, readme_data, args.alpha, args.eta,
-                        args.topics, args.workers)
+        lda = GensimLDA(args.topics, args.workers, input_file=args.input_file)
 
         lda.test_model_hyperparams(vectorizer, processed_data,
                                    args.min_alpha, args.max_alpha, args.alpha_step,
                                    args.min_eta, args.max_eta, args.eta_step,
                                    args.min_topics, args.max_topics, args.topics_step)
     elif args.gensim:
-        GensimLDA(args.input_file, readme_data,
-                  args.alpha, args.eta, args.topics,
-                  args.workers).run(vectorizer, processed_data)
+        GensimLDA(args.topics, args.workers,
+                  alpha=args.alpha, eta=args.eta).run(vectorizer, processed_data)
     else:
-        SKLearnLDA(args.topics,
-                   args.workers).run(vectorizer, processed_data)
+        SKLearnLDA(args.topics, args.workers).run(vectorizer, processed_data)
 
 
 if __name__ == '__main__':
