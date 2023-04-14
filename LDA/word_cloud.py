@@ -1,9 +1,8 @@
 import logging
 
+
 class Cloud:
-    """
-    Generate a word cloud from the given data
-    """
+    """Generate a word cloud from the given data."""
     def run(self, vectorizer, data):
         frequencies = self.prepare(vectorizer, data)
         wordcloud = self.gencloud(frequencies)
@@ -20,9 +19,7 @@ class Cloud:
         return frequencies
 
     def gencloud(self, frequencies):
-        """
-        Generate the word cloud
-        """
+        """Generate the word cloud."""
         from wordcloud import WordCloud
 
         logging.info('Generating word cloud')
@@ -36,9 +33,9 @@ class Cloud:
         matplotlib.use('TkAgg')
         import matplotlib.pyplot as plt
 
-        plt.figure(figsize = (2, 1), facecolor = None)
+        plt.figure(figsize=(2, 1), facecolor=None)
         plt.imshow(wordcloud)
         plt.axis("off")
-        plt.tight_layout(pad = 0)
+        plt.tight_layout(pad=0)
 
         plt.show()

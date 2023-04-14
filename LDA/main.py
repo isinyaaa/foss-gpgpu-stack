@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
 import logging
+
 import pandas as pd
 
+from lda import GensimLDA, SKLearnLDA
 from preprocess import Preprocess
 from word_cloud import Cloud
-from lda import GensimLDA, SKLearnLDA
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.WARNING)
 LOGGER = logging.getLogger()
+
 
 def main(args):
     readme_data = pd.read_csv(args.input_file)
@@ -34,7 +36,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
     from multiprocessing import cpu_count
 
     parser = ArgumentParser(prog='lda.py',
@@ -59,15 +61,15 @@ if __name__ == '__main__':
                            help='use Gensim implementation')
     lda_group.add_argument('-sk', '--sklearn', action='store_true',
                            help='use sklearn implementation')
-    parser_lda.add_argument('-t', '--topics', type=int, default=8,
+    parser_lda.add_argument('-t', '--topics', type=int, default=11,
                             help='number of topics to use')
-    parser_lda.add_argument('-a', '--alpha', type=float, default=0.5,
+    parser_lda.add_argument('-a', '--alpha', type=float, default=0.36,
                             help='alpha to use')
-    parser_lda.add_argument('-e', '--eta', type=float, default=0.4,
+    parser_lda.add_argument('-e', '--eta', type=float, default=0.34,
                             help='eta to use')
     parser_lda.add_argument('-tw', '--top-words', type=float, default=20,
                             help='top words to get on NMF')
-    parser_lda.set_defaults(hyperparams=False) # HACK
+    parser_lda.set_defaults(hyperparams=False)  # HACK
 
     parser_hy = subparsers.add_parser('hy', help='run hyperparameter tuning on Gensim LDA')
     parser_hy.add_argument('-mt', '--min-topics', type=int, default=2,
@@ -76,20 +78,20 @@ if __name__ == '__main__':
                            help='maximum number of topics to test')
     parser_hy.add_argument('-ts', '--topics-step', type=int, default=1,
                            help='step size for topic testing')
-    parser_hy.add_argument('-ma', '--min-alpha', type=float, default=0.1,
+    parser_hy.add_argument('-ma', '--min-alpha', type=float, default=0.01,
                            help='minimum alpha to test')
     parser_hy.add_argument('-xa', '--max-alpha', type=float, default=1,
                            help='maximum alpha to test')
     parser_hy.add_argument('-as', '--alpha-step', type=float, default=0.3,
                            help='step size for alpha testing')
-    parser_hy.add_argument('-me', '--min-eta', type=float, default=0.1,
+    parser_hy.add_argument('-me', '--min-eta', type=float, default=0.01,
                            help='minimum eta to test')
     parser_hy.add_argument('-xe', '--max-eta', type=float, default=1,
                            help='maximum eta to test')
     parser_hy.add_argument('-es', '--eta-step', type=float, default=0.3,
                            help='step size for eta testing')
     parser_hy.set_defaults(hyperparams=True,
-                           alpha=None, eta=None, topics=None) # HACK
+                           alpha=None, eta=None, topics=None)  # HACK
 
     parser.add_argument('input_file', help='input file')
 
