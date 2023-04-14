@@ -106,7 +106,8 @@ class GensimLDA(LDA):
             workers = self.workers
 
         model = LdaMulticore(corpus=corpus, id2word=id2word, num_topics=topics,
-                             random_state=100, chunksize=100, passes=10,
+                             random_state=100, chunksize=1000, decay=0.5,
+                             iterations=50, passes=100,  # gamma_threshold=0.01,
                              alpha=alpha, eta=eta, per_word_topics=True,
                              workers=workers)
 
