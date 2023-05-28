@@ -22,7 +22,7 @@ class Cloud:
         """Generate the word cloud."""
         from wordcloud import WordCloud
 
-        logging.info('Generating word cloud')
+        logging.info('Generating word cloud...')
 
         return WordCloud(background_color="white", max_words=5000, width=1600,
                          height=800, contour_width=3,

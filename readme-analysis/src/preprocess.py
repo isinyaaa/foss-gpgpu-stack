@@ -5,7 +5,9 @@ class Preprocess:
     def run(self, data):
         data.readmes_contents = data.readmes_contents.apply(self.clean)
         logging.info("Cleaning done")
+        logging.debug("--------------")
         logging.debug(data.head())
+        logging.info("Vectorizing...")
         return self.vectorize(data)
 
     def clean(self, text):

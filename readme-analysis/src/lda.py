@@ -105,6 +105,8 @@ class SKLearnLDA(LDA):
 class GensimLDA(LDA):
     """Generate a LDA model from the given data."""
 
+    from gensim.models import LdaMulticore as LDA
+
     def __init__(self, topics, workers, **kwargs):
         super().__init__(topics, workers, **kwargs)
 
@@ -116,8 +118,8 @@ class GensimLDA(LDA):
         self.eta = kwargs.get("eta")
 
     def run(self, vectorizer, data):
-        _, corpus, id2word = self.prepare(vectorizer, data)
-        model = self.train(corpus, id2word)
+        texts, corpus, id2word = self.prepare(vectorizer, data)
+        model = self.train(texts, corpus, id2word)
         self.save_result_as_html(model, corpus, id2word)
         self.print_document_topics(model, corpus)
         self.print_topics(model)
@@ -134,30 +136,53 @@ class GensimLDA(LDA):
 
         return texts, corpus, id2word
 
-    def train(self, corpus, id2word,
-              alpha=None, eta=None, topics=None, workers=None):
-        from gensim.models import LdaMulticore
+    def train(self, texts, corpus, id2word):
+        from pprint import pprint
 
-        if alpha is None:
-            alpha = self.alpha
-        if eta is None:
-            eta = self.eta
-        if topics is None:
-            topics = self.topics
-        if workers is None:
-            workers = self.workers
+        best_params = self.autotune(texts, corpus, id2word)
 
-        model = LdaMulticore(corpus=corpus, id2word=id2word, num_topics=topics,
-                             random_state=100, chunksize=1000, decay=0.5,
-                             iterations=50, passes=100,  # gamma_threshold=0.01,
-                             alpha=alpha, eta=eta, per_word_topics=True,
-                             workers=workers)
+        logging.info("Training LDA model...")
+        model = self.LDA(corpus=corpus, id2word=id2word,
+                         random_state=100, chunksize=1000, decay=0.5,
+                         iterations=50, passes=10,  # gamma_threshold=0.01,
+                         per_word_topics=True,
+                         workers=self.workers, **best_params)
+        logging.info("LDA model trained")
 
-        if LOGGER.getEffectiveLevel() == logging.DEBUG:
-            from pprint import pprint
-            pprint(model.print_topics())
+        # logging.info("LDA model topics:")
+        # pprint(model.print_topics())
 
         return model
+
+    def autotune(self, texts, corpus, id2word):
+        from numpy import arange
+        from sklearn.model_selection import GridSearchCV
+        # from cuml.model_selection import GridSearchCV
+        from gensim.sklearn_integration.sklearn_wrapper_gensim_ldamodel import SklearnWrapperLdaModel
+
+        param_grid = {
+            "alpha": arange(0.01, 1, 0.1),
+            "eta": arange(0.01, 1, 0.1),
+            "topics": arange(5, 15),
+        }
+
+        def model_perplexity(estimator, X, y=None):
+            """Get model perplexity for analysis."""
+            from gensim.models import CoherenceModel
+
+            return CoherenceModel(model=estimator, texts=texts, dictionary=estimator.id2word,
+                                  coherence="c_v").get_coherence()
+
+        model = SklearnWrapperLdaModel(corpus=corpus, id2word=id2word)
+
+        logging.info("Autotuning LDA model...")
+        grid = GridSearchCV(model, param_grid, scoring=model_perplexity, cv=5, verbose=4, n_jobs=-1, error_score='raise')
+        grid.fit(corpus)
+        logging.info("Autotuning done")
+        logging.info("Best parameters set found on development set:")
+        logging.info(grid.best_params_)
+
+        return grid.best_params_
 
     def save_result_as_html(self, model, corpus, id2word):
         from pyLDAvis.gensim_models import prepare
@@ -184,10 +209,7 @@ class GensimLDA(LDA):
         current_time = datetime.now().strftime("%Y.%m.%d-%H.%M.%S")
         plt.savefig(f"./ldavis_data/{self.topics}_topics_{current_time}.png", dpi=300)
 
-    def test_model_hyperparams(self, vectorizer, data,
-                               min_alpha=0.01,  max_alpha=1,    alpha_step=0.3,
-                               min_eta=0.01,    max_eta=1,      eta_step=0.3,
-                               min_topics=2,    max_topics=11,  topics_step=1):
+    def test_model_hyperparams(self, vectorizer, data):
         import numpy as np
         import tqdm
         from gensim.utils import ClippedCorpus

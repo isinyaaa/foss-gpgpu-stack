@@ -99,7 +99,7 @@ if __name__ == '__main__':
 
     if args.verbose:
         LOGGER.setLevel(logging.INFO)
-    if args.debug:
+    elif args.debug:
         LOGGER.setLevel(logging.DEBUG)
 
     main(args)

@@ -53,14 +53,14 @@ def get_issues_data(path):
 
 def main():
     api_data = pd.DataFrame()
-    with os.scandir('.') as it:
-        for entry in it:
-            if entry.is_file() and entry.name.endswith('.json'):
-                repo_data = get_repo_data(entry.name)
+    with os.scandir('.') as ls:
+        for fd in ls:
+            if fd.is_file() and fd.name.endswith('.json'):
+                repo_data = get_repo_data(fd.name)
                 api_data = pd.concat([api_data, repo_data])
                 continue
-            elif entry.is_dir():
-                path = os.path.join('.', entry.name)
+            elif fd.is_dir():
+                path = os.path.join('.', fd.name)
                 issues_data = get_issues_data(path)
 
     # print distribution of forks and stars for each API
