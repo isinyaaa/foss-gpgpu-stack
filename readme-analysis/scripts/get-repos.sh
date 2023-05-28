@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 
-repo_list="$1"
+repo_list="$(realpath "$1")"
+REPOS_DIR="data/repos"
 
 if [ -z "$repo_list" ]; then
     echo "Usage: $0 <repo-list>"
     exit 1
 fi
 
-test -d repos || {
-    mkdir repos || exit 1
-}
+cd "$REPOS_DIR" || exit 1
+
+
 
 while read repo; do
     if [[ "$repo" =~ ^# ]]; then
@@ -26,11 +27,11 @@ while read repo; do
 
     foldername=$(basename "$repo" | sed 's/\.git$//')
 
-    if [ -d "repos/$foldername" ]; then
+    if [ -d "$foldername" ]; then
         if [ "$2" = "--update" ]; then
             echo "Updating $repo..."
             (
-                cd "repos/$foldername"
+                cd "$foldername"
                 git pull
             )
         fi
@@ -38,12 +39,9 @@ while read repo; do
     fi
 
     echo "Cloning $repo..."
-    (
-        cd repos
-        git clone "$repo" || {
-            echo "Failed to get $repo"
-            exit 1
-        }
-    )
+    git clone "$repo" || {
+        echo "Failed to get $repo"
+        exit 1
+    }
 done < "$repo_list"
 echo "Done."

@@ -10,9 +10,11 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+DATA_DIR = 'data/github'
+
 
 def get_repo_data(filename):
-    with open(os.path.join('gh_data', filename)) as f:
+    with open(os.path.join('.', filename)) as f:
         data = json.load(f)
 
     api_name = re.sub(r'_output\.json$', '', filename)
@@ -51,14 +53,14 @@ def get_issues_data(path):
 
 def main():
     api_data = pd.DataFrame()
-    with os.scandir('gh_data') as it:
+    with os.scandir('.') as it:
         for entry in it:
             if entry.is_file() and entry.name.endswith('.json'):
                 repo_data = get_repo_data(entry.name)
                 api_data = pd.concat([api_data, repo_data])
                 continue
             elif entry.is_dir():
-                path = os.path.join('gh_data', entry.name)
+                path = os.path.join('.', entry.name)
                 issues_data = get_issues_data(path)
 
     # print distribution of forks and stars for each API
@@ -98,6 +100,8 @@ def main():
 
 
 if __name__ == '__main__':
-    if os.path.exists('gh_data'):
-        main()
+    if not os.path.exists(DATA_DIR):
+        os.mkdir(DATA_DIR)
+    os.chdir(DATA_DIR)
 
+    main()

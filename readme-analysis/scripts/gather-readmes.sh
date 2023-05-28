@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+DATA_DIR="data"
 OUTPUT_FILE="readmes.csv"
 
 add_entry() {
@@ -21,10 +22,10 @@ add_entry() {
 }
 
 main() {
+    cd "$DATA_DIR" || exit 1
+    test -d repos || exit 1
     check_file="${1:-names.raw}"
     OUTPUT_FILE="${2:-$OUTPUT_FILE}"
-    check_file="repo_data/${check_file}"
-    OUTPUT_FILE="repo_data/${OUTPUT_FILE}"
     test -f "$check_file" || touch "$check_file"
 
     echo 'project,readmes_contents' > "$OUTPUT_FILE"

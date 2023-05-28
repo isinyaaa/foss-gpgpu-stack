@@ -1,12 +1,5 @@
 *.DS_Store
-.env
-
-/gh_data/
-/ldavis_data/
-/plots/
-/repo_data/
-/repos/
-/scores/
+*/.env*
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
