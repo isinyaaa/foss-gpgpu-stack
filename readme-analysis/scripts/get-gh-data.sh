@@ -21,27 +21,29 @@ for api in {cuda,opencl,opengl,vulkan}; do
         repo_name=$(echo "$repo" | sed 's/\//_/g')
         filename="${api}/${repo_name}".json
         echo '[' > "$filename"
-        while true; do
-            eval gh search issues --repo "$repo" "$ISSUE_FLAGS" --state 'open' "$ISSUE_OUTPUT"  | jq | tee -a 
+        slept=0
+        while [ $slept -lt 600 ]; do
+            eval gh search issues --repo "$repo" "$ISSUE_FLAGS" --state 'open' "$ISSUE_OUTPUT"  | jq | tee -a "$filename"
             if [ $? -ne 0 ]; then
                 echo "Failed to get issues for $repo"
                 sleep 5
+                slept=$((slept + 5))
             else
                 break
             fi
         done
         echo ',' > "$filename"
-        sleep 1
-        while true; do
-            eval gh search issues --repo "$repo" "$ISSUE_FLAGS" --state 'closed' "$ISSUE_OUTPUT" | jq | tee -a "${api}/${repo_name}".json
+        slept=0
+        while [ $slept -lt 600 ]; do
+            eval gh search issues --repo "$repo" "$ISSUE_FLAGS" --state 'closed' "$ISSUE_OUTPUT" | jq | tee -a "$filename"
             if [ $? -ne 0 ]; then
                 echo "Failed to get issues for $repo"
                 sleep 5
+                slept=$((slept + 5))
             else
                 break
             fi
         done
-        sleep 1
         echo ']' >> "$filename"
         tmp=$(mktemp)
         jq -s 'flatten' "$filename" > "$tmp" && mv "$tmp" "$filename"
