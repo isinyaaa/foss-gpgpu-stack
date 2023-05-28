@@ -18,34 +18,28 @@ for api in {cuda,opencl,opengl,vulkan}; do
     cat "${api}_output".json | jq 'map(.fullName)' | sed -e 's/"//g' -e 's/,//g' -e '1d;$d' | tee "${api}_repos".txt
     while read -r repo; do
         echo "Getting $repo issues"
-        repo_name=$(echo "$repo" | sed 's/\//_/g')
-        filename="${api}/${repo_name}".json
-        echo '[' > "$filename"
-        slept=0
-        while [ $slept -lt 600 ]; do
-            eval gh search issues --repo "$repo" "$ISSUE_FLAGS" --state 'open' "$ISSUE_OUTPUT"  | jq | tee -a "$filename"
-            if [ $? -ne 0 ]; then
-                echo "Failed to get issues for $repo"
-                sleep 5
-                slept=$((slept + 5))
-            else
-                break
-            fi
+        issue_query_out=$(mktemp)
+        for state in open closed; do
+            slept=0
+            tmp=$(mktemp)
+            while [ $slept -lt 600 ]; do
+                eval gh search issues --repo "$remote" "$ISSUE_FLAGS" --state "$state" "$ISSUE_OUTPUT" | jq > "$tmp"
+                if [ $? -ne 0 ]; then
+                    echo "Failed to get issues for $remote"
+                    sleep 5
+                    slept=$((slept + 5))
+                else
+                    {
+                        echo '['
+                        cat "$tmp"
+                        echo '],'
+                    } >> "$issue_query_out"
+                    break
+                fi
+            done
         done
-        echo ',' > "$filename"
-        slept=0
-        while [ $slept -lt 600 ]; do
-            eval gh search issues --repo "$repo" "$ISSUE_FLAGS" --state 'closed' "$ISSUE_OUTPUT" | jq | tee -a "$filename"
-            if [ $? -ne 0 ]; then
-                echo "Failed to get issues for $repo"
-                sleep 5
-                slept=$((slept + 5))
-            else
-                break
-            fi
-        done
-        echo ']' >> "$filename"
-        tmp=$(mktemp)
-        jq -s 'flatten' "$filename" > "$tmp" && mv "$tmp" "$filename"
+        # fallback for an empty list or a trailing comma
+        echo '[]' >> "$issue_query_out"
+        jq -s 'flatten' "$issue_query_out" > "${api}/${repo//\//_}.json"
     done < "${api}_repos".txt
 done
