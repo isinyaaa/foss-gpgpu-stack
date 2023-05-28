@@ -3,13 +3,20 @@
 DATA_DIR="data"
 OUTPUT_FILE="readmes.csv"
 
-add_entry() {
+append() {
     repo_path="$1"
     repo="$(basename "$repo_path")"
-    mapfile -t readme_files < <(cd "$repo_path" || return 1; fd -tf -d1 -i readme)
+
+    # list readme files
+    mapfile -t readme_files < <(
+        cd "$repo_path" || return 1
+        fd -tf -d1 -i readme
+    )
     if [ -z "${readme_files[*]}" ]; then
         return 1;
     fi
+
+    # append readme contents to csv
     echo "$repo," >> "$OUTPUT_FILE"
 
     (
@@ -49,7 +56,7 @@ main() {
                 continue
             fi
         fi
-        add_entry "$repo_path"
+        append "$repo_path"
     done
 }
 

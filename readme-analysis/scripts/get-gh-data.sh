@@ -40,7 +40,7 @@ issue_output=$(IFS=,; echo "${ISSUE_OUTPUT[*]}")
 
 cd "$DATA_DIR" || exit 1
 
-for api in {cuda,opencl,opengl,vulkan}; do
+for api in cuda opencl opengl vulkan; do
     echo "Getting $api data"
     repo_query_out="${api}.json"
 
@@ -55,15 +55,15 @@ for api in {cuda,opencl,opengl,vulkan}; do
     jq 'map(.fullName)' "$repo_query_out" |\
         sed -e 's/"//g' -e 's/,//g' -e '1d;$d' > "$repo_list"
 
-    while read -r repo; do
-        echo "Getting $repo issues"
+    while read -r remote; do
+        echo "Getting $remote issues"
         issue_query_out=$(mktemp)
         for state in open closed; do
             slept=0
             tmp=$(mktemp)
             while [ $slept -lt 600 ]; do
-                if gh search issues --repo "$repo" "${ISSUE_FLAGS[@]}" --state $state --json "$issue_output" > "$tmp"; then
-                    echo "Failed to get issues for $repo"
+                if gh search issues --repo "$remote" "${ISSUE_FLAGS[@]}" --state $state --json "$issue_output" > "$tmp"; then
+                    echo "Failed to get issues for $remote"
                     sleep 5
                     slept=$((slept + 5))
                 else
@@ -78,6 +78,6 @@ for api in {cuda,opencl,opengl,vulkan}; do
         done
         # fallback for an empty list or a trailing comma
         echo '[]' >> "$issue_query_out"
-        jq -s 'flatten' "$issue_query_out" > "${api}/${repo//\//_}.json"
+        jq -s 'flatten' "$issue_query_out" > "${api}/${remote//\//_}.json"
     done < "$repo_list"
 done
