@@ -1,47 +1,61 @@
 #!/usr/bin/env bash
 
-repo_list="$(realpath "$1")"
 REPOS_DIR="data/repos"
 
-if [ -z "$repo_list" ]; then
-    echo "Usage: $0 <repo-list>"
+main() {
+    cd "$REPOS_DIR" || exit 1
+
+    if [ ! -f "$REPO_LIST" ]; then
+        echo "Repo list not found: $REPO_LIST"
+        echo
+        echo "Usage: $0 [--update|-u] <repo-list>"
+        echo "  --update|-u: Update existing repos"
+        echo "  <repo-list>: List of repos to clone"
+        echo
+        echo "By default, the repo list is repo-list.txt"
+        exit 1
+    fi
+
+    while read -r remote; do
+        if [[ "$remote" =~ ^# ]]; then
+            continue
+        fi
+
+        clonedir=$(basename "$remote" | sed 's/\.git$//')
+        if [ -d "$clonedir" ]; then
+            if [ "$UPDATE" = true ]; then
+                echo "Updating $remote..."
+                git -C "$clonedir" pull
+            fi
+            continue
+        fi
+
+        echo "Cloning $remote..."
+        git clone "$remote" || echo "Failed to get $remote"
+    done < "$REPO_LIST"
+    echo "Done."
+}
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 [--update|-u] <repo-list>"
     exit 1
 fi
 
-cd "$REPOS_DIR" || exit 1
+UPDATE=false
+REPO_LIST="repo-list.txt"
 
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --update|-u)
+            UPDATE=true
+            shift
+            ;;
+        *)
+            REPO_LIST=$(realpath "$1")
+            shift
+            ;;
+    esac
+    shift
+done
 
-
-while read repo; do
-    if [[ "$repo" =~ ^# ]]; then
-        continue
-    fi
-
-    # IS_GITFORGE=false
-    # for i in {"github","gitlab","bitbucket"}; do
-    #     if [[ "$repo" =~ "$i" ]]; then
-    #         IS_GITFORGE=true
-    #         break
-    #     fi
-    # done
-
-    foldername=$(basename "$repo" | sed 's/\.git$//')
-
-    if [ -d "$foldername" ]; then
-        if [ "$2" = "--update" ]; then
-            echo "Updating $repo..."
-            (
-                cd "$foldername"
-                git pull
-            )
-        fi
-        continue
-    fi
-
-    echo "Cloning $repo..."
-    git clone "$repo" || {
-        echo "Failed to get $repo"
-        exit 1
-    }
-done < "$repo_list"
-echo "Done."
+main
