@@ -24,20 +24,41 @@ add_entry() {
 main() {
     cd "$DATA_DIR" || exit 1
     test -d repos || exit 1
-    check_file="${1:-names.raw}"
-    OUTPUT_FILE="${2:-$OUTPUT_FILE}"
-    test -f "$check_file" || touch "$check_file"
 
-    echo 'project,readmes_contents' > "$OUTPUT_FILE"
+    if ! test -f "$OUTPUT_FILE"; then
+        OVERWRITE=true
+    fi
+
+    if [ "$OVERWRITE" = true ]; then
+        echo 'project,readmes_contents' > "$OUTPUT_FILE"
+    fi
 
     for repo_path in repos/*; do
         repo="$(basename "$repo_path")"
-        grep -qi "$repo" "$check_file"
-        if [ $? != 0 ]; then
-            add_entry "$repo_path"
-            echo "$repo" >> "$check_file"
+        if grep -qi "$repo" <(cut -d, -f1 "$OUTPUT_FILE"); then
+            if [ "$OVERWRITE" = true ]; then
+                sed -i "/^$repo/d" "$OUTPUT_FILE"
+            else
+                continue
+            fi
         fi
+        add_entry "$repo_path"
     done
 }
 
-main "$@"
+OVERWRITE=false
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --force|-f)
+            OVERWRITE=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
+
+main
