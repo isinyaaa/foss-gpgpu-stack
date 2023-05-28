@@ -1,8 +1,8 @@
-\documentclass[11pt, conference, onecolumn, final]{IEEEtran}
+\documentclass[conference, onecolumn]{IEEEtran}
 % \IEEEoverridecommandlockouts
 % The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
 \usepackage[T1]{fontenc}
-% \usepackage[margin=1.5in,marginpar=1.25in]{geometry}
+\usepackage[margin=1.5in,marginpar=1.25in]{geometry}
 \usepackage{lmodern}
 \usepackage{cite}
 \usepackage{IMTtikz}
@@ -156,7 +156,7 @@ But we also ought to be careful when comparing raw component numbers between
 different GPUs, as hardware design differences across manufacturers can be
 more significant than in CPUs.
 
-Although it is not always possible to convert a \text{serial} task into a
+Although it is not always possible to convert a \textit{serial} task into a
 parallelized one, some routines, such as those from linear algebra, can be
 thoroughly optimized from their most basic operations, which are often
 performed in uncoupled data a great many number of times -- it is, of course,
@@ -181,7 +181,9 @@ One particular development strategy that appeals to modern scientific standards
 is that of open source, in which the code is fully available to the public.
 Most obviously, as open-source software is auditable, it becomes easier to
 verify reproducibility of scientific results created with it (see
-\cite{barba2022defining}).
+\cite{barba2022defining}), but this also allows for early collaboration between
+researchers and developers, which can lead to better software design and
+performance (see \cite{wilson2014best}).
 
 Building on the practice of open source we also have \textit{free software}
 (commonly denoted by FLOSS or FOSS): a development ideology that focuses around
@@ -417,7 +419,7 @@ In this step we also remove words that appear in less than $\qty{10}{\percent}$
 of documents, or in more than $\qty{90}{\percent}$ of them, as they are either
 too common or too rare to be relevant to the analysis.
 
-After that, we use \texit{latent Dirichlet allocation} LDA to group the
+After that, we use \textit{latent Dirichlet allocation} LDA to group the
 documents into topics, which is a probabilistic model that assumes that each
 document is a mixture of topics, and each topic is a mixture of words.
 LDA assigns every word in every document to a topic randomly at first, then
@@ -599,7 +601,7 @@ a different approach, as discussed in \cref{sec:next-steps:statistics}.
 
 \subsection{Statistical analysis} \label{sec:next-steps:statistics}
 
-\todo{decide on another algorithm}
+\todo{i don't know what to do :)}
 
 \subsection{Graphics APIs} \label{sec:next-steps-apis}
 
