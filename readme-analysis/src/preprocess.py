@@ -11,14 +11,12 @@ class Preprocess:
     def clean(self, text):
         import re
 
-        text = re.sub(r"[%s]" % re.escape("""""()[]{}"""), " ", text)
-        text = re.sub(r"<.*?>+", "", text)
-        text = re.sub(r"\d*", "", text)
+        text = re.sub(r"[%s]" % re.escape(""""'"()[]{}<>"""), " ", text)
+        text = re.sub(r"\d+", "", text)
         text = re.sub(r"\n", "", text)
         text = re.sub(r"(?:(?:https?:\/\/)|(?:www\.))([^\/ ]+)(?:(?:\.[a-zA-Z]*)|(?::\d{3,5}))(\/+\S*)?", r"\1 \2", text)
-        text = re.sub(r"[%s]" % re.escape("""!""#$%&*+.,/:;=?@\-^`|~"""), " ", text)
-        text = re.sub(r"\.+ ", " ", text)
-        text = re.sub(r" \S ", " ", text)
+        text = re.sub(r"[%s]" % re.escape("""!#$%&*+.,/:;=?@\_^`|~"""), " ", text)
+        text = re.sub(r"\s+", " ", text)
 
         return text
 
