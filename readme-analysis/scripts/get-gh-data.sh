@@ -23,7 +23,7 @@ for api in {cuda,opencl,opengl,vulkan}; do
             slept=0
             tmp=$(mktemp)
             while [ $slept -lt 600 ]; do
-                eval gh search issues --repo "$remote" "$ISSUE_FLAGS" --state "$state" "$ISSUE_OUTPUT" | jq > "$tmp"
+                eval gh search issues --repo "$remote" "$ISSUE_FLAGS" --state "$state" "$ISSUE_OUTPUT" > "$tmp"
                 if [ $? -ne 0 ]; then
                     echo "Failed to get issues for $remote"
                     sleep 5
