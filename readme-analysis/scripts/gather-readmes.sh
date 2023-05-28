@@ -7,11 +7,11 @@ add_entry() {
     repo_path="$1"
     repo="$(basename "$repo_path")"
     mapfile -t readme_files < <(cd "$repo_path" || return 1; fd -tf -d1 -i readme)
-    if [ -z "$readme_files" ]; then
+    if [ -z "${readme_files[*]}" ]; then
         return 1;
     fi
     echo "$repo," >> "$OUTPUT_FILE"
-    for readme in "$readme_files"; do
+    for readme in "${readme_files[@]}"; do
         sed -e 's/,//g' "${repo_path}/${readme}" >> "$OUTPUT_FILE"
         if [ $? != 0 ]; then
             echo "Couldn't read ${repo_path}/${readme}"
