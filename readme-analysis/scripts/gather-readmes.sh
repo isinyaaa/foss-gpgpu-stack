@@ -11,14 +11,21 @@ add_entry() {
         return 1;
     fi
     echo "$repo," >> "$OUTPUT_FILE"
-    for readme in "${readme_files[@]}"; do
-        sed -e 's/,//g' "${repo_path}/${readme}" >> "$OUTPUT_FILE"
-        if [ $? != 0 ]; then
-            echo "Couldn't read ${repo_path}/${readme}"
-            continue
-        fi
-        echo -e '\n' >> "$OUTPUT_FILE"
-    done
+
+    (
+        set +e
+        set -o pipefail
+        for readme in "${readme_files[@]}"; do
+            sed -e 's/,//g' "${repo_path}/${readme}" |\
+                tr -d '\r' |\
+                tr '\n' ' ' >> "$OUTPUT_FILE"
+            if [ $? != 0 ]; then
+                echo "Couldn't read ${repo_path}/${readme}"
+                continue
+            fi
+            echo -e '\n' >> "$OUTPUT_FILE"
+        done
+    )
 }
 
 main() {
