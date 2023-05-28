@@ -31,27 +31,69 @@ class LDA:
 
 
 class SKLearnLDA(LDA):
+    from sklearn.decomposition import LatentDirichletAllocation as LDA
+
     def __init__(self, topics, workers, **kwargs):
         super().__init__(topics, workers, **kwargs)
 
     def run(self, vectorizer, data):
-        model, results = self.train(data)
+        model, results = self.train(vectorizer, data)
         self.save_result_as_html(model, data, vectorizer)
         return results
 
-    def train(self, data):
-        from sklearn.decomposition import LatentDirichletAllocation
+    def train(self, vectorizer, data):
+        if self.workers is None:
+            workers = -1
+        else:
+            workers = self.workers
+
+        best_params = self.autotune(data)
+
+        logging.info("Training LDA model...")
+        model = self.LDA(n_jobs=workers, **best_params)
+        fitted = model.fit(data)
+
+        logging.info("Training done")
+
+        print("Topics in LDA model:")
+        feature_names = vectorizer.get_feature_names()
+        for topic_idx, topic in enumerate(model.components_):
+            print("Topic #%d:" % topic_idx)
+            print(" ".join([feature_names[i]
+                            for i in topic.argsort()[:-10 - 1:-1]]))
+            print()
+
+        return model, fitted
+
+    def autotune(self, data):
+        from numpy import arange
+        from sklearn.model_selection import GridSearchCV
+        # from cuml.model_selection import GridSearchCV
 
         if self.workers is None:
             workers = -1
         else:
             workers = self.workers
 
-        lda = LatentDirichletAllocation(n_components=self.topics, max_iter=5,
-                                        learning_method="online",
-                                        learning_offset=50., random_state=0,
-                                        n_jobs=workers)
-        return lda, lda.fit_transform(data)
+        param_grid = {
+            "n_components": arange(2, 10),
+            "learning_decay": arange(0.5, 1, 0.1),
+            "learning_method": ["online", "batch"],
+            "learning_offset": arange(10, 100, 10),
+            "max_iter": [10, 50, 100],
+        }
+
+        model = self.LDA(n_jobs=-1)
+
+        logging.info("Autotuning LDA model...")
+        grid = GridSearchCV(model, param_grid, cv=5, verbose=3,
+                            n_jobs=-1)
+        grid.fit(data)
+        logging.info("Autotuning done")
+        logging.info("Best parameters set found on development set:")
+        logging.info(grid.best_params_)
+
+        return grid.best_params_
 
     def save_result_as_html(self, model, data, vectorizer):
         from pyLDAvis.sklearn import prepare
