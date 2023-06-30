@@ -49,12 +49,12 @@
 
 \begin{document}
 
-\title{\textbf{Undergraduate Research Project: Report I} \\
+\title{\textbf{Undergraduate Research Project: Report II} \\
 {A comparison between the usage of free and proprietary solutions for General-purpose computing on GPUs (GPGPU)}
 % \thanks{Identify applicable funding agency here. If none, delete this.}
 }
 
-\date{December 7th, 2022}
+\date{June 30th, 2023}
 
 \author{\IEEEauthorblockN{Isabella Basso do Amaral} \\
 \and
@@ -62,7 +62,7 @@
 \IEEEauthorblockA{\textit{Mathematics and Statistics Institute (IME)} \\
 \textit{University of São Paulo}\\
 São Paulo, Brazil \\
-\texttt{\href{mailto:gold@ime.usp}{\nolinkurl{gold@ime.usp}}}}
+\texttt{\href{mailto:gold@ime.usp.br}{\nolinkurl{gold@ime.usp.br}}}}
 }
 
 \maketitle
@@ -235,7 +235,7 @@ GPU utilization as, for the most part, control of its routines is still
 performed on the CPU.
 Graphics APIs provide such control to the programmer, as they are made to
 orchestrate the entire pipeline: from managing and compiling the shaders to
-synchronizing CPU and GPU and even GPU cores amongst themselves.
+synchronizing CPU and GPU and even GPU cores among themselves.
 
 Of course, calls to the graphics card are not free, and shader code also has to
 be compiled anyway, so during this process it undergoes further optimizations
@@ -245,12 +245,12 @@ in, roughly, two steps:
         representation} (IR) which can then be optimized by the compiler using
         generic directives (i.e. independently of the target hardware);
     \item The IR is, then, translated into the target machine code, and can
-        also optimized, again, for the target architecture.
+        also be optimized, again, for the target architecture.
 \end{enumerate}
 The two translation steps are generally known as \textit{front-end} and
 \textit{back-end} of a compiler. After those steps the shader can finally be
 sent to the GPU.
-In Linux this is a small part of the execution of a shader, as we can see in
+On Linux this is a small part of the execution of a shader, as we can see in
 Figure \cref{fig:linux-gs}, represented by Mesa -- Linux's standard userspace
 graphics driver provider.
 
@@ -259,7 +259,7 @@ graphics driver provider.
     \includegraphics[width=0.8\linewidth]{linux-stack.jpeg}
     \caption{The graphics stack used in Linux kernel-based operating systems.}
     \label{fig:linux-gs}
-    \end{figure}
+\end{figure}
 \todo{insert image license}
 
 \begin{figure}[H]
@@ -269,7 +269,7 @@ graphics driver provider.
         responsible for providing open source implementations for the userspace
         part of the Linux graphics stack.}
     \label{fig:mesa-cs}
-    \end{figure}
+\end{figure}
 \todo{insert image license}
 
 \subsubsection{A comparison of open source and proprietary graphics APIs} \label{sec:proposal:gapis-comparison}
@@ -314,14 +314,14 @@ calculations, as this fact lacks research to back it:
         supporting CUDA.
 \end{enumerate}
 
-It is clear, then, that there is a great disparity amongst API adoption rates,
+It is clear, then, that there is a great disparity among API adoption rates,
 especially taking into account the popularity of the applications in each
 group.
 
 Given that Vulkan tries to cover more ground than any other API, it also has a
 significantly steeper learning curve as compared to CUDA, making its adoption
 more challenging when compared to other alternatives.
-OpenCL-related tooling has recently gained more focus amongst open-source
+OpenCL-related tooling has recently gained more focus among open-source
 software consultancies, as we can see in \cite{MachineL70:online}.
 
 \subsection{Objectives} \label{sec:intro:objectives}
@@ -351,6 +351,8 @@ to us as well.
 
 \section{Methodology} \label{sec:methodology}
 
+\subsection{First term} \label{sec:methodology:1st-term}
+
 In October 2022 I have attended
 \href{https://indico.freedesktop.org/event/2/page/11-overview}{X.Org Developers Conference 2022}
 in order to present another project I have developed in
@@ -372,6 +374,31 @@ OpenGL, which is the most common API, and should provide a good basis for
 understanding both Vulkan and OpenCL.
 I have also started to look up literature on benchmarks and performance
 analysis.
+
+\subsection{Second term} \label{sec:methodology:2nd-term}
+
+I have learned about the main aspects of operating systems in the MAC5753
+course, including various scheduling algorithms, details about memory
+management, as well as the main aspects of file systems' design.
+This knowledge has already helped me break down multiple applications and
+systems I have encountered, and should help me understand the internals of the
+driver implementations for each API.
+This course was also very code-intensive, which has helped me improve my
+C programming skills.
+I will also be making a presentation as part of the course, which will be about
+\href{https://github.com/contiki-ng/contiki-ng}{Contiki-NG}, an operating
+system for the \textit{Internet of Things} (IoT).
+
+In the MAC5742 course, I have learned about the main aspects of parallel
+programming, and how to use the CUDA API.
+I have also studied code profiling and benchmarking, and how to use the
+\verb|nvprof| tool to profile CUDA code, which is useful knowledge for
+evaluating the performance of the applications I have chosen to analyze.
+I have also made a group presentation about federated learning, which is a
+distributed machine learning technique.
+
+In July 2023 I will present an extended abstract of this paper at the 2023
+\href{https://sites.google.com/view/erad-sp2023/home}{ERAD-SP} conference.
 
 \subsection{Statistics} \label{sec:methodology:statistics}
 
@@ -437,61 +464,9 @@ topics should be in each document ($\alpha$).
 
 \subsubsection{Hyperparameter tuning} \label{sec:methodology:statistics-hyper}
 
-We analyze \verb|gensim|'s hyperparameters by looking taking a range of them
-and training the model as usual, then we look at the \textit{coherence score},
-which is a metric that measures how well the model is able to group words that
-are semantically linked.
-
-First, we look at the coherence score for different numbers of topics, see
-\cref{fig:coherenceXtopics}.
-We can see that the coherence score is highest for $N = 8$, so we will use that
-value for the rest of the analysis.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\linewidth]{coherenceXtopics.png}
-    \caption{Average coherence score for a range of topics.}
-    \label{fig:coherenceXtopics}
-\end{figure}
-\todo{update graph}
-
-Now, for the other parameters, it is interesting to look at different samples of
-the data so we do not overfit the model to the data.
-Overfitting is a problem that happens when the model is too complex for the
-data, and it memorizes the data instead of learning the underlying patterns.
-So by optimizing results for the whole corpus but also for a smaller sample, we
-can avoid overfitting.
-In figures \cref{fig:75p-coherenceXalpha-eta} and
-\cref{fig:100p-coherenceXalpha-eta} we can see that the coherence score is
-highest for $0.4 \leqslant \alpha \leqslant 0.7$ and
-$0.1 \leqslant \eta \leqslant 0.4$.
-As the step between these values is $0.3$, we cannot really tell which value is
-optimal, so we reduce the range of both parameters to the intervals we found to
-be most promising, and look at the coherence score using a smaller step.
-Notice it is often a good idea to make ranges a little bigger, so that we can
-take into account optimal values that might be near the edges of the range.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\linewidth]{75p-coherenceXalpha-eta.png}
-    \caption{Average coherence score for different $\alpha$ and $\eta$ using
-        \qty{75}{\percent} of the data (corpus).}
-    \label{fig:75p-coherenceXalpha-eta}
-\end{figure}
-\todo{update graph}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\linewidth]{100p-coherenceXalpha-eta.png}
-    \caption{Average coherence score for different $\alpha$ and $\eta$ using
-        all of the data (corpus).}
-    \label{fig:100p-coherenceXalpha-eta}
-\end{figure}
-\todo{update graph}
-
-We continue narrowing down the intervals for $\alpha$ and $\eta$ up to a
-precision of $0.01$, for which the coherence score seems stable for neighboring
-values.
+We analyze hyperparameters by performing a `GridSearchCV`, using
+\textit{coherence score} as the metric to optimize, as it measures how well the
+model is able to group words that are semantically linked.
 
 \subsubsection{Implementation issues} \label{sec:methodology:statistics-issues}
 
@@ -603,7 +578,10 @@ a different approach, as discussed in \cref{sec:next-steps:statistics}.
 
 \subsection{Statistical analysis} \label{sec:next-steps:statistics}
 
-\todo{i don't know what to do :)}
+Reviewers from \href{https://jems.sbc.org.br/PaperShow.cgi?m=232692}{ERAD-SP}
+suggested using \textit{named entity recognition} (NER) to extract the
+repositories' subjects, as NER allows for collecting labelled data, which can
+aid in the training of a classifier.
 
 \subsection{Graphics APIs} \label{sec:next-steps-apis}
 
@@ -612,17 +590,10 @@ projects we have selected, giving special attention to those that implement
 another graphics API besides CUDA.
 We will then compare the performance between top projects in each category, and
 analyze different implementations of similar routines.
-This requires understanding the different APIs, and how they work.
-It will also require finding useful benchmarks and tools, as well as possibly
-implementing our own.
-
-Aside from personal studies, I will also be taking courses in parallel
-programming and operating systems.
-The first will be useful for learning an overview of the CUDA API as well as
-for benchmarking the projects we have selected.
-The second should provide the tools for interpreting the internals of the
-environment which executes our compute pipelines, thus providing for a better
-grasp of the orchestrations that happen at every level of execution.
+This will require more experience with the different APIs, as well as
+detailed analyses of the projects' source code.
+It will also require finding useful benchmarks for each application, and tools
+that are compatible to each.
 
 \bibliographystyle{IEEEtran}
 \bibliography{../IEEEabrv,../references}
