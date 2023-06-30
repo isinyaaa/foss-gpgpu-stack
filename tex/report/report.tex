@@ -26,7 +26,7 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{setspace}
-\usepackage[obeyFinal]{todonotes}
+\usepackage[obeyDraft]{todonotes}
 
 \definecolor{darkgray}{HTML}{383e79}
 
@@ -110,7 +110,7 @@ methods.
 As datasets grow larger, researchers have adopted increasingly complex
 approaches to better utilize hardware, looking for possibilities to take full
 advantage of their capabilities.
-This has not come without its price, as there's an accompanying need for
+This has not come without its price, as there is an accompanying need for
 evermore specific hardware to optimize common routines at the most basic level.
 One such piece of hardware is the \textit{graphics processing unit} (GPU),
 which emerged as a viable alternative to the \textit{central processing unit}
@@ -442,7 +442,7 @@ and training the model as usual, then we look at the \textit{coherence score},
 which is a metric that measures how well the model is able to group words that
 are semantically linked.
 
-First, let's look at the coherence score for different numbers of topics, see
+First, we look at the coherence score for different numbers of topics, see
 \cref{fig:coherenceXtopics}.
 We can see that the coherence score is highest for $N = 8$, so we will use that
 value for the rest of the analysis.
@@ -455,8 +455,8 @@ value for the rest of the analysis.
 \end{figure}
 \todo{update graph}
 
-Now, for the other parameters, it's interesting to look at different samples of
-the data so we don't overfit the model to the data.
+Now, for the other parameters, it is interesting to look at different samples of
+the data so we do not overfit the model to the data.
 Overfitting is a problem that happens when the model is too complex for the
 data, and it memorizes the data instead of learning the underlying patterns.
 So by optimizing results for the whole corpus but also for a smaller sample, we
@@ -465,10 +465,10 @@ In figures \cref{fig:75p-coherenceXalpha-eta} and
 \cref{fig:100p-coherenceXalpha-eta} we can see that the coherence score is
 highest for $0.4 \leqslant \alpha \leqslant 0.7$ and
 $0.1 \leqslant \eta \leqslant 0.4$.
-As the step between these values is $0.3$, we can't really tell which value is
+As the step between these values is $0.3$, we cannot really tell which value is
 optimal, so we reduce the range of both parameters to the intervals we found to
 be most promising, and look at the coherence score using a smaller step.
-Notice it's often a good idea to make ranges a little bigger, so that we can
+Notice it is often a good idea to make ranges a little bigger, so that we can
 take into account optimal values that might be near the edges of the range.
 
 \begin{figure}[H]
@@ -616,7 +616,7 @@ This requires understanding the different APIs, and how they work.
 It will also require finding useful benchmarks and tools, as well as possibly
 implementing our own.
 
-Aside from personal studies, I'll also be taking courses in parallel
+Aside from personal studies, I will also be taking courses in parallel
 programming and operating systems.
 The first will be useful for learning an overview of the CUDA API as well as
 for benchmarking the projects we have selected.
