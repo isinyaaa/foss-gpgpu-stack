@@ -1,10 +1,10 @@
 \documentclass[12pt]{article}
 
-\usepackage{sbc-template}
-\usepackage{graphicx,url,amssymb,hyperref}
+\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
-\usepackage[T1]{fontenc}
+\usepackage{sbc-template}
+\usepackage{graphicx,url,amssymb,hyperref}
 
 \sloppy
 
@@ -29,14 +29,12 @@
 \maketitle
 
 \begin{abstract}
-    In this research project, we explore the usage of open-source and proprietary
-    solutions for performing general-purpose computing on graphics processing
-    units (GPGPU).
-    We begin by analyzing project statistics and categorizing them according to
-    their descriptions using unsupervised machine learning.
-    Then, we compare the performance and usability of the solutions, proposing
-    enhancements to better support the development of open-source GPGPU
-    tooling.
+    In this research project, we explore the usage of open-source and proprietary solutions for
+    performing general-purpose computing on graphics processing units (GPGPU).
+    We begin by categorizing projects according to their descriptions using unsupervised machine
+    learning.
+    Then, we compare the performance and usability of the solutions in each category, proposing
+    enhancements to better support the development of open-source GPGPU tooling.
 \end{abstract}
 
 \section{Introduction} \label{sec:intro}
@@ -44,16 +42,17 @@
 \subsection{Motivation} \label{sec:intro:motivation}
 
 Computers have become invaluable assets to research, mainly with respect to
-numerical problems that are largely unsolvable through analytical methods.
+numerical problems -- those that are largely unsolvable through analytical
+methods.
 As needs evolve, not only software but also hardware has become increasingly
-complex, giving rise to what we call \textbf{heterogeneous systems}.
-These systems are composed of multiple processing units, each with its own
+complex, giving rise to \textbf{heterogeneous systems}:
+these are composed of multiple processing units, each with its own
 architecture, which will dictate performance characteristics for different
 workloads.
 
-Graphics Processing Units (GPUs) are optimized for parallel computation, which
-works by taking advantage of uncoupled data, and can cut execution times
-proportionally to the number of computational units available.
+Graphics Processing Units (GPUs) are optimized for parallel computing, whereby
+taking advantage of uncoupled data we can cut execution times proportionally to
+the number of computational units available.
 Linear algebra routines, which can be thoroughly optimized for parallelism, sit
 at the core of many scientific applications, such as machine learning and
 numerical simulations.
@@ -68,7 +67,7 @@ world development practices, leading to unmaintainable code (see
 
 One particular development strategy that appeals to modern scientific standards
 is that of open source, in which the code is fully available to the public.
-Most obviously, as open-source software is auditable, it becomes easier to
+Notably, as open-source software is auditable, it becomes easier to
 verify the reproducibility of scientific results created with it (see
 \cite{barba2022defining}), but this also allows for early collaboration between
 researchers and developers, which can lead to better software design and
@@ -98,10 +97,14 @@ widespread than any other API, proprietary or not.
 On the one hand, most open-source alternatives that provide the same
 functionality are either in their infancy or have not provided what was needed
 to replace CUDA, examples are, respectively, HIP by AMD, and OpenCL by the
-Khronos Group.
+Khronos Group\footnote{
+    More generally speaking, there are also competing APIs in the heterogeneous
+    computing space, such as OpenMP, OpenACC, and SYCL, but we focus primarily
+    on GPGPU in this work.
+}.
 On the other hand, OpenCL-related tooling has recently gained more focus
 amongst open-source software consultancies, as we can see in
-\cite{Nicola_2022}, so it is possible that the situation is changing.
+\cite{nicola2022etnaviv}, so it is possible that the situation is changing.
 
 Thus, in this research project, we aim to:
 \begin{enumerate}
@@ -127,7 +130,7 @@ to us as well.
 
 \section{Methodology} \label{sec:methodology}
 
-So far, we have made some progress on \ref{obj1} by analyzing popular
+So far, we have made some progress on objective \ref{obj1} by analyzing popular
 graphics-accelerated projects using topic modeling\footnote{
     All code related to this work is available at \href{https://github.com/isinyaaa/foss-gpgpu-stack}{isinyaaa/foss-gpgpu-stack}.
 }.
@@ -136,10 +139,9 @@ graphics-accelerated projects using topic modeling\footnote{
 
 We assume that most relevant scientific applications have support for CUDA.
 \href{https://nvidia.com/en-us/gpu-accelerated-applications}{NVIDIA's list of accelerated apps}
-provides a non-exhaustive list of (somewhat relevant) applications that use
-it, and by filtering by relevant categories and manual sorting, we got a list of 141 projects that
-are open source and use \verb|git| as their version
-control system.
+provides a non-exhaustive list of applications that use it, and by filtering by
+relevant categories and manual sorting, we got a list of 141 projects that are
+open source and use \verb|git| as their version control system.
 After that, following \cite{zheng2018measuring}'s methodology, we gathered the
 repositories' \verb|README| files and removed sections that were not relevant to
 our analysis.
@@ -150,27 +152,25 @@ The gathered data was cleansed further, removing stop words, symbols (such as
 punctuation), standalone numbers, and very short words.
 We then break up the data into sizeable chunks by tokenizing and lemmatizing
 it.
-This reduces the number of words to a more
-manageable amount, and also makes it allows us to compare words that are similar
-in meaning.
+This reduces the number of words to a more manageable amount, and also allows
+us to compare words that are similar in meaning.
 
-We then store the results of preprocessing in a count vector so that we can
-abstract away from the order of the words, thus making it easier to compare
-documents.
-In this step, we also remove words that appear in less than $10\%$
-of documents, or in more than $90\%$ of them, as they are either
-too common or too rare to be relevant to the analysis.
+We then store the results of preprocessing in a count vector, which abstracts
+away from the order of the words and makes it easier to compare documents.
+In this step, we also remove words that appear in less than $10\%$ of
+documents, or in more than $90\%$ of them, as they are either too common or too
+rare to be relevant to the analysis.
 
 After that, we use Latent Dirichlet Allocation (LDA) to group the documents
 into $N$ topics.
 We use the \textit{coherence score} for tuning the hyperparameters of our
-model, randomizing samples of the data so we don't overfit the model to the data
-while testing for different ranges of hyperparameters with varying precision.
+model, randomizing samples of the data, so we do not overfit the model to the
+data while testing for different ranges of hyperparameters with varying
+precision.
 
-We were able to generate clear visualizations for a tuned \verb|gensim| model by using the
-\textit{t-distributed stochastic neighbor embedding} (t-SNE) method for
-\verb|pyLDAvis|, as we can see in
-\ref{fig:lda_gensim_tsne}.
+We were able to generate clear visualizations for a tuned \verb|gensim| model
+by using the \textit{t-distributed stochastic neighbor embedding} (t-SNE)
+method for \verb|pyLDAvis|, as we can see in figure \ref{fig:lda_gensim_tsne}.
 T-SNE works well with sparse data, as it is better able to preserve local
 structure, but it needs manual tuning.
 
@@ -185,25 +185,32 @@ structure, but it needs manual tuning.
 \section{Discussion} \label{sec:discussion}
 
 By taking the most likely topic for each document, we were able to plot
-\ref{fig:topic-probabilities}.
+figure \ref{fig:topic-probabilities}.
 Looking at the words composing each topic, it is still non-trivial to label
-them, thus we are still unable to make any conclusions about the
-repositories' actual subjects, requiring further analysis.
+them.
+Thus, we are still unable to make any conclusions about the repositories'
+actual subjects.
 
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.7\linewidth]{topic-probabilities.png}
-    \caption{Topic probability distribution of the documents in the corpus.}
+    \caption{Topic probability distribution of the documents in the corpus
+    (note that topics are numbered from 0).}
     \label{fig:topic-probabilities}
 \end{figure}
 
 \section{Next steps} \label{sec:next-steps}
 
-\subsection{Graphics APIs} \label{sec:next-steps-apis}
+\subsection{Statistics} \label{sec:next-steps:statistics}
 
-As we refine our statistical analyses, we then proceed to profile GPU performance of the
-projects we have selected, giving special attention to those that implement
-another graphics API besides CUDA.
+As suggested by one of the reviewers, using Named Entity Recognition (NER) to
+help cluster the repositories might be promising.
+
+\subsection{Graphics APIs} \label{sec:next-steps:apis}
+
+As we refine our statistical analyses, we then proceed to profile GPU
+performance of the projects we have selected, giving special attention to those
+that implement another graphics API besides CUDA.
 We will then compare the performance between top projects in each category, and
 analyze different implementations of similar routines.
 This requires understanding the different APIs, and how they work.

@@ -1,0 +1,25 @@
+Title: A comparison between the usage of free and proprietary solutions for General-purpose computing on GPUs (GPGPU)
+
+Título: Uma comparação entre o uso de soluções livres e proprietárias para computação de propósito geral em GPUs (GPGPU)
+
+Abstract
+
+In this research project, we explore the usage of open-source and proprietary
+solutions for performing general-purpose computing on graphics processing
+units (GPGPU).
+We begin by categorizing projects them according to their descriptions using
+unsupervised machine learning.
+Then, we compare the performance and usability of the solutions in each
+category, proposing enhancements to better support the development of
+open-source GPGPU tooling.
+
+Resumo
+
+Neste projeto de pesquisa, exploramos o uso de soluções de código aberto e
+proprietárias para computação de propósito geral em unidades de processamento
+gráfico (GPGPU).
+Iniciamos nossa análise categorizando projetos de acordo com suas descrições.
+Para isso usamos aprendizado de máquina não-supervisionado.
+Em seguida, comparamos o desempenho e a usabilidade das soluções, por
+categoria, propondo melhorias ao desenvolvimento de ferramentas para GPGPU de
+código aberto.
